@@ -7,6 +7,9 @@ import com.vestaChrono.ecommerce.order_service.entity.OrderStatus;
 import com.vestaChrono.ecommerce.order_service.entity.Orders;
 import com.vestaChrono.ecommerce.order_service.repository.OrdersRepository;
 import com.vestaChrono.ecommerce.order_service.service.OrdersService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -41,7 +44,11 @@ public class OrdersServiceImpl implements OrdersService {
     }
 
     @Override
+//    @Retry(name = "inventoryRetry", fallbackMethod = "createOrderFallback")
+    @CircuitBreaker(name = "inventoryCircuitBreaker", fallbackMethod = "createOrderFallback")
+//    @RateLimiter(name = "inventoryRateLimiter", fallbackMethod = "createOrderFallback")
     public OrderRequestDto createOrder(OrderRequestDto orderRequestDto) {
+        log.info("Calling the createOrder method");
         Double totalPrice = inventoryFeignClient.reduceStocks(orderRequestDto);
 
 //        Create the order and save in the orderDB, map to entity
@@ -57,5 +64,10 @@ public class OrdersServiceImpl implements OrdersService {
 //        save the orders
         Orders savedOrder = ordersRepository.save(orders);
         return modelMapper.map(savedOrder, OrderRequestDto.class);
+    }
+
+    public OrderRequestDto createOrderFallback(OrderRequestDto orderRequestDto, Throwable throwable){
+        log.info("Fallback occurred due to : {}", throwable.getMessage());
+        return new OrderRequestDto();
     }
 }

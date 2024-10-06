@@ -60,4 +60,10 @@ public class ProductController {
         return ResponseEntity.ok(totalPrice);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> restoreStock(@RequestBody OrderRequestDto orderRequestDto) {
+        productService.restoreStocks(orderRequestDto);
+        return ResponseEntity.ok().build();
+    }
+
 }

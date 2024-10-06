@@ -30,6 +30,12 @@ public class OrdersController {
         return new  ResponseEntity<>(orderRequest, HttpStatus.CREATED);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        ordersService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     private ResponseEntity<List<OrderRequestDto>> getAllOrders() {
         log.info("Fetching all the orders via controller");

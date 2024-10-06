@@ -66,6 +66,21 @@ public class OrdersServiceImpl implements OrdersService {
         return modelMapper.map(savedOrder, OrderRequestDto.class);
     }
 
+    @Override
+    public void deleteOrder(Long orderId) {
+
+        log.info("Deleting the order with Id {}", orderId);
+        Orders order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with Id: "+ orderId));
+
+//        creating DTO to restore stock
+        OrderRequestDto orderRequestDto = modelMapper.map(order, OrderRequestDto.class);
+//        calling the inventory service to restore the stock
+        inventoryFeignClient.restoreStocks(orderRequestDto);
+//        delete the order from the repository
+        ordersRepository.delete(order);
+    }
+
     public OrderRequestDto createOrderFallback(OrderRequestDto orderRequestDto, Throwable throwable){
         log.info("Fallback occurred due to : {}", throwable.getMessage());
         return new OrderRequestDto();

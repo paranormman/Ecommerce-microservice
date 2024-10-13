@@ -1,3 +1,6 @@
+jwt:
+  secretKey: ljhaowuefqjhoib876rousdghckjgsfbco8a374t o8bchegliuCHFJSDFHBoiqf
+
 spring:
   application:
     name: api-gateway
@@ -14,6 +17,9 @@ spring:
             - StripPrefix=2
 #            - RedirectTo=302, http://codingshuttle.com
             - name: LoggingOrdersFilter
+            - name: Authentication
+              args:
+                isEnabled: true
         - id: inventory-service
           uri: lb://INVENTORY-SERVICE
           predicates:
@@ -21,6 +27,7 @@ spring:
           filters:
             - StripPrefix=2
             - AddRequestHeader=X-Custom-Header, Manoj
+            - name: Authentication
 eureka:
   client:
     service-url:
